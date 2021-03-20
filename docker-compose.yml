@@ -1,0 +1,53 @@
+version: "3.7"
+services:
+
+  ## PHP-FPM Container ############
+  php-fpm:
+    build:
+      context: ./docker/php-fpm
+      dockerfile: Dockerfile
+    image: php-fpm
+    container_name: EventsLaravel-php-fpm
+    restart: unless-stopped
+    working_dir: /var/www/html
+    volumes:
+      - ./:/var/www/html
+    networks:
+      - EventsLaravel-network
+
+  ## NGINX Container #############
+  nginx:
+    image: nginx:1.19-alpine
+    container_name: EventsLaravel-nginx
+    restart: unless-stopped
+    ports:
+      - 80:80
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx:/etc/nginx/conf.d
+    networks:
+      - EventsLaravel-network
+
+  # MySQL Container
+  mysql:
+    image: mysql:8.0
+    container_name: EventsLaravel-mysql
+    volumes:
+      - EventsLaravel-db:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=EventsLaravel
+      - MYSQL_DATABASE=EventsLaravel
+      - MYSQL_USER=EventsLaravel
+      - MYSQL_PASSWORD=EventsLaravel
+    networks:
+      - EventsLaravel-network
+
+networks:
+  EventsLaravel-network:
+    driver: bridge
+
+volumes:
+  EventsLaravel-db:
+    driver: local
