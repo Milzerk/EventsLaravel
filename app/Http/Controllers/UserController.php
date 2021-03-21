@@ -9,25 +9,21 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    private $pagination = 15;
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $seconds = 30;
-        $value = Cache::remember('users', $seconds, function () {
-            $users = User::all();
-            foreach ($users as $user) {
-                if($user->id == 3) {
-                    $recoveryUser = $user;
-                }
-            }
-            return $recoveryUser;
+        $seconds = 60 * 60;
+        $currentPage = $request->page;
+        $users = Cache::remember('users'.$currentPage, $seconds, function () {
+            $usersData = User::paginate($this->pagination);
+            return $usersData;
         });
-
-        var_dump($value);
+        return view('users')->with('users', $users);
     }
 
     /**
