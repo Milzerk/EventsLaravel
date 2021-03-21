@@ -44,10 +44,24 @@ services:
     networks:
       - EventsLaravel-network
 
+  # Redis
+  redis:
+    image: redis:6.2
+    container_name: EventsLaravel-redis
+    command: redis-server --appendonly yes --requirepass "${REDIS_PASSWORD}"
+    volumes:
+      - EventsLaravel-db:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - EventsLaravel-network
+
 networks:
   EventsLaravel-network:
     driver: bridge
 
 volumes:
   EventsLaravel-db:
+    driver: local
+  EventsLaravel-redis:
     driver: local
