@@ -6,10 +6,22 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
+use App\Http\Controllers\Base\BaseController;
+use App\Http\Services\UserService;
+use App\Jobs\SaveUser;
 
-class UserController extends Controller
+class UserController extends BaseController
 {
     private $pagination = 15;
+
+    /**
+     * @param UserService @service
+     * @return void
+     */
+    public function __construct(UserService $baseService) {
+        parent::__construct($baseService);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -19,10 +31,12 @@ class UserController extends Controller
     {
         $seconds = 60 * 60;
         $currentPage = $request->page;
+
         $users = Cache::remember('users'.$currentPage, $seconds, function () {
             $usersData = User::paginate($this->pagination);
             return $usersData;
         });
+
         return view('users')->with('users', $users);
     }
 
@@ -44,11 +58,8 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $newUser = new User();
-        $newUser->name = $request->name;
-        $newUser->email = $request->email;
-        $newUser->password = Hash::make($request->password);
-        $newUser->save();
+
+        SaveUser::dispatch($request->all());
         return back();
     }
 
